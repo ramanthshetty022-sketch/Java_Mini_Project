@@ -10,26 +10,37 @@ public class HostelDAO {
 
     private static final String URL      = "jdbc:mysql://localhost:3306/hosteldb";
     private static final String USER     = "root";
-    private static final String PASSWORD = "root"; 
+    private static final String PASSWORD = "root";
 
     private Connection getConnection() throws SQLException, ClassNotFoundException {
         Class.forName("com.mysql.cj.jdbc.Driver");
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 
-    // ── ADD ──────────────────────────────────────────────────────────────────
+    // ── ADD — no StudentID, AUTO_INCREMENT handles it ────────────────────────
     public boolean addStudent(Student s) throws Exception {
-        String sql = "INSERT INTO HostelStudents VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO HostelStudents (StudentName, RoomNumber, AdmissionDate, FeesPaid, PendingFees) VALUES (?, ?, ?, ?, ?)";
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, s.getStudentID());
-            ps.setString(2, s.getStudentName());
-            ps.setString(3, s.getRoomNumber());
-            ps.setDate(4, s.getAdmissionDate());
-            ps.setDouble(5, s.getFeesPaid());
-            ps.setDouble(6, s.getPendingFees());
+            ps.setString(1, s.getStudentName());
+            ps.setString(2, s.getRoomNumber());
+            ps.setDate(3, s.getAdmissionDate());
+            ps.setDouble(4, s.getFeesPaid());
+            ps.setDouble(5, s.getPendingFees());
             return ps.executeUpdate() > 0;
         }
+    }
+
+    // ── GET NEXT AUTO INCREMENT ID — to show in readonly field ───────────────
+    public int getNextAutoIncrementID() throws Exception {
+        String sql = "SELECT AUTO_INCREMENT FROM information_schema.TABLES " +
+                     "WHERE TABLE_SCHEMA = 'hosteldb' AND TABLE_NAME = 'HostelStudents'";
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt("AUTO_INCREMENT");
+        }
+        return 1;
     }
 
     // ── UPDATE ───────────────────────────────────────────────────────────────
