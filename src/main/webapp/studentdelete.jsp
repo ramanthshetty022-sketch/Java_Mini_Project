@@ -27,8 +27,9 @@
 
     .btn-danger { background: #d63031; color: #fff; border: none; padding: 11px 30px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 600; transition: background 0.2s; box-shadow: 0 4px 12px rgba(214,48,49,0.25); margin-top: 6px; }
     .btn-danger:hover { background: #c0392b; }
+    .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    .msg-success { background: #e8fdf8; color: #00a381; padding: 11px 16px; border-left: 4px solid #00B894; border-radius: 4px; margin-bottom: 20px; font-size: 14px; }
+    .msg-success { background: #e8fdf8; color: #00a381; padding: 11px 16px; border-left: 4px solid #00B894; border-radius: 4px; margin-bottom: 20px; font-size: 14px; font-weight: 600; }
     .msg-error   { background: #fff5f5; color: #d63031; padding: 11px 16px; border-left: 4px solid #d63031; border-radius: 4px; margin-bottom: 20px; font-size: 14px; }
     .warn { background: #fff9f0; color: #e17055; padding: 11px 16px; border-left: 4px solid #e17055; border-radius: 4px; margin-bottom: 22px; font-size: 14px; }
     .err { color: #d63031; font-size: 12px; margin-top: 4px; display: none; }
@@ -37,10 +38,10 @@
 <body>
 
 <nav>
-  <div class="brand">🏠 Hostel <span>Management System</span></div>
+  <div class="brand">&#127968; Hostel <span>Management System</span></div>
   <div class="nav-links">
     <a href="index.jsp">Home</a>
-    <a href="studentadd.jsp">Add Student</a>
+    <a href="AddStudentServlet">Add Student</a>
     <a href="StudentUpdate">Update Student</a>
     <a href="studentdelete.jsp">Delete Student</a>
     <a href="DisplayStudentsServlet">View Students</a>
@@ -49,25 +50,40 @@
 </nav>
 
 <div class="container">
-  <h2>🗑️ Delete Student</h2>
+  <h2>&#128465; Delete Student</h2>
   <p class="subtitle">Permanently remove a student record</p>
   <hr class="section-line">
 
-  <% String msg = (String) request.getAttribute("message");
-     if (msg != null) { %>
-    <div class="<%= msg.contains("success") ? "msg-success" : "msg-error" %>"><%= msg %></div>
+  <%-- Flash message from session --%>
+  <%
+    String flashMsg = (String) session.getAttribute("flashMessage");
+    if (flashMsg != null) {
+        session.removeAttribute("flashMessage");
+  %>
+    <div class="msg-success"><%= flashMsg %></div>
   <% } %>
 
-  <div class="warn">⚠️ This action is permanent and cannot be undone.</div>
+  <%-- Error from request --%>
+  <%
+    String errMsg = (String) request.getAttribute("message");
+    if (errMsg != null) {
+  %>
+    <div class="msg-error"><%= errMsg %></div>
+  <% } %>
 
-  <form action="DeleteStudentServlet" method="post" id="delForm" novalidate
-        onsubmit="return confirmDelete(event)">
+  <div class="warn">&#9888; This action is permanent and cannot be undone.</div>
+
+  <form action="DeleteStudentServlet" method="post"
+        id="delForm" novalidate onsubmit="return confirmDelete(event)">
     <div class="form-group">
-      <label>Student ID</label>
-      <input type="number" name="studentID" id="studentID" min="1" placeholder="Enter Student ID to delete">
+      <label>Student ID *</label>
+      <input type="number" name="studentID" id="studentID"
+             min="1" placeholder="Enter Student ID to delete">
       <div class="err" id="errID">Please enter a valid Student ID.</div>
     </div>
-    <button type="submit" class="btn-danger">🗑️ Delete Student</button>
+    <button type="submit" class="btn-danger" id="delBtn">
+      &#128465; Delete Student
+    </button>
   </form>
 </div>
 
@@ -81,7 +97,14 @@ function confirmDelete(e) {
     return false;
   }
   errEl.style.display = 'none';
-  return confirm('Are you sure you want to delete student with ID ' + id + '?');
+  if (!confirm('Are you sure you want to delete student with ID ' + id + '?')) {
+    return false;
+  }
+  // Disable button to prevent double submit
+  const btn = document.getElementById('delBtn');
+  btn.disabled = true;
+  btn.textContent = 'Deleting...';
+  return true;
 }
 </script>
 </body>

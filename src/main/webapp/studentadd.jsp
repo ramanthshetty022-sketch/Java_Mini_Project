@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" %>
+<%@ page import="com.hostel.dao.HostelDAO" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -23,25 +24,26 @@
     label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px; color: #636e72; text-transform: uppercase; letter-spacing: 0.4px; }
     input { width: 100%; padding: 10px 13px; border: 1.5px solid #dfe6e9; border-radius: 6px; font-size: 14px; background: #fff; color: #2D3436; transition: border-color 0.2s; }
     input:focus { border-color: #00B894; outline: none; box-shadow: 0 0 0 3px rgba(0,184,148,0.1); }
-    input[readonly] { background: #f1f2f6; color: #636e72; cursor: not-allowed; border-color: #dfe6e9; }
+    input[readonly] { background: #f1f2f6; color: #00a381; cursor: not-allowed; border-color: #dfe6e9; font-weight: 700; font-size: 15px; }
     input::placeholder { color: #b2bec3; }
 
     .inline { display: flex; gap: 14px; }
     .inline .form-group { flex: 1; }
 
-    .btn { background: #00B894; color: #fff; border: none; padding: 11px 32px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 600; margin-top: 6px; transition: background 0.2s; box-shadow: 0 4px 12px rgba(0,184,148,0.3); }
+    .btn { background: #00B894; color: #fff; border: none; padding: 11px 32px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 600; margin-top: 6px; transition: background 0.2s, opacity 0.2s; box-shadow: 0 4px 12px rgba(0,184,148,0.3); }
     .btn:hover { background: #00a381; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    .msg-success { background: #e8fdf8; color: #00a381; padding: 11px 16px; border-left: 4px solid #00B894; border-radius: 4px; margin-bottom: 20px; font-size: 14px; }
+    .msg-success { background: #e8fdf8; color: #00a381; padding: 11px 16px; border-left: 4px solid #00B894; border-radius: 4px; margin-bottom: 20px; font-size: 14px; font-weight: 600; }
     .msg-error   { background: #fff5f5; color: #d63031; padding: 11px 16px; border-left: 4px solid #d63031; border-radius: 4px; margin-bottom: 20px; font-size: 14px; }
     .err { color: #d63031; font-size: 12px; margin-top: 4px; display: none; }
-    .auto-badge { background: #e8fdf8; color: #00a381; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; font-weight: 600; }
+    .auto-badge { background: #e8fdf8; color: #00a381; font-size: 11px; padding: 3px 10px; border-radius: 10px; margin-left: 8px; font-weight: 700; border: 1px solid #a0e8d8; vertical-align: middle; }
   </style>
 </head>
 <body>
 
 <nav>
-  <div class="brand">🏠 Hostel <span>Management System</span></div>
+  <div class="brand">&#127968; Hostel <span>Management System</span></div>
   <div class="nav-links">
     <a href="index.jsp">Home</a>
     <a href="AddStudentServlet">Add Student</a>
@@ -53,34 +55,60 @@
 </nav>
 
 <div class="container">
-  <h2>➕ Add New Student</h2>
+  <h2>&#10133; Add New Student</h2>
   <p class="subtitle">Student ID is auto-assigned by the system</p>
   <hr class="section-line">
 
-  <% String msg = (String) request.getAttribute("message");
-     if (msg != null) { %>
-    <div class="<%= msg.contains("success") ? "msg-success" : "msg-error" %>"><%= msg %></div>
+  <%-- Flash message from session (after redirect) --%>
+  <%
+    String flashMsg = (String) session.getAttribute("flashMessage");
+    if (flashMsg != null) {
+        session.removeAttribute("flashMessage");
+  %>
+    <div class="msg-success"><%= flashMsg %></div>
   <% } %>
+
+  <%-- Error message from request (on validation failure) --%>
+  <%
+    String errMsg = (String) request.getAttribute("message");
+    if (errMsg != null) {
+  %>
+    <div class="msg-error"><%= errMsg %></div>
+  <% } %>
+
+  <%-- Fetch next AUTO INCREMENT ID --%>
+  <%
+    Integer nextID = (Integer) request.getAttribute("nextID");
+    String displayID;
+    if (nextID != null) {
+        displayID = String.valueOf(nextID);
+    } else {
+        try {
+            displayID = String.valueOf(new HostelDAO().getNextAutoIncrementID());
+        } catch (Exception ex) {
+            displayID = "Auto";
+        }
+    }
+  %>
 
   <form action="AddStudentServlet" method="post" id="addForm" novalidate>
 
-    <%-- AUTO INCREMENT ID shown as readonly --%>
     <div class="form-group">
-      <label>Student ID <span class="auto-badge">Auto Generated</span></label>
-      <input type="text"
-             value="<%= request.getAttribute("nextID") != null ? request.getAttribute("nextID") : "Auto" %>"
-             readonly>
+      <label>Student ID <span class="auto-badge">AUTO GENERATED</span></label>
+      <input type="text" value="<%= displayID %>" readonly>
     </div>
 
     <div class="inline">
       <div class="form-group">
         <label>Student Name *</label>
-        <input type="text" name="studentName" id="studentName" maxlength="100" placeholder="Full name">
+        <input type="text" name="studentName" id="studentName"
+               maxlength="100" placeholder="Full name">
         <div class="err" id="errName">Name is required (letters and spaces only).</div>
       </div>
       <div class="form-group">
         <label>Room Number *</label>
-        <input type="text" name="roomNumber" id="roomNumber" maxlength="10" placeholder="e.g. A-12">
+        <input type="text" name="roomNumber" id="roomNumber"
+               maxlength="10" placeholder="e.g. A-12">
         <div class="err" id="errRoom">Room number is required.</div>
       </div>
     </div>
@@ -93,18 +121,20 @@
 
     <div class="inline">
       <div class="form-group">
-        <label>Fees Paid (₹) *</label>
-        <input type="number" name="feesPaid" id="feesPaid" min="0" step="0.01" placeholder="0.00">
+        <label>Fees Paid (&#8377;) *</label>
+        <input type="number" name="feesPaid" id="feesPaid"
+               min="0" step="0.01" placeholder="0.00">
         <div class="err" id="errPaid">Amount cannot be negative.</div>
       </div>
       <div class="form-group">
-        <label>Pending Fees (₹) *</label>
-        <input type="number" name="pendingFees" id="pendingFees" min="0" step="0.01" placeholder="0.00">
+        <label>Pending Fees (&#8377;) *</label>
+        <input type="number" name="pendingFees" id="pendingFees"
+               min="0" step="0.01" placeholder="0.00">
         <div class="err" id="errPending">Amount cannot be negative.</div>
       </div>
     </div>
 
-    <button type="submit" class="btn">✔ Add Student</button>
+    <button type="submit" class="btn" id="submitBtn">&#10004; Add Student</button>
   </form>
 </div>
 
@@ -115,6 +145,7 @@ document.getElementById('addForm').addEventListener('submit', function(e) {
     document.getElementById(id).style.display = cond ? 'block' : 'none';
     if (cond) ok = false;
   };
+
   const name = document.getElementById('studentName').value.trim();
   const room = document.getElementById('roomNumber').value.trim();
   const date = document.getElementById('admissionDate').value;
@@ -126,10 +157,19 @@ document.getElementById('addForm').addEventListener('submit', function(e) {
   show('errDate',    !date);
   show('errPaid',    paid === '' || isNaN(paid) || parseFloat(paid) < 0);
   show('errPending', pend === '' || isNaN(pend) || parseFloat(pend) < 0);
-  if (!ok) e.preventDefault();
+
+  if (!ok) {
+    e.preventDefault();
+    return;
+  }
+
+  // Disable button immediately to prevent double submit
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Adding...';
 });
 
-// Block negative input as user types
+// Block negative values as user types
 document.getElementById('feesPaid').addEventListener('input', function() {
   if (parseFloat(this.value) < 0) this.value = 0;
 });
