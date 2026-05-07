@@ -7,15 +7,15 @@
   <title>All Students</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#F4FBF8; font-family:'Segoe UI',sans-serif; }
-    .navbar { background:#2C6E49; color:#F4FBF8; padding:14px 24px; font-weight:700; }
-    .navbar a { color:#CDEFE2; text-decoration:none; margin-right:10px; font-weight:500; }
+    body { background:#AAFFC7; font-family:'Segoe UI',sans-serif; color:#124170; }
+    .navbar { background:#124170; color:#AAFFC7; padding:14px 24px; font-weight:700; }
+    .navbar a { color:#AAFFC7; text-decoration:none; margin-right:10px; font-weight:500; }
     .wrap { max-width:1100px; margin:30px auto; padding:0 16px; }
-    .card { background:#fff; padding:24px; border-radius:12px; border-top:6px solid #2C6E49; box-shadow:0 6px 16px rgba(0,0,0,0.08); }
+    .card { background:#fff; padding:24px; border-radius:12px; border-top:6px solid #215B63; box-shadow:0 6px 16px rgba(0,0,0,0.08); }
     table { width:100%; border-collapse:collapse; font-size:0.9rem; }
-    thead { background:#2C6E49; color:#F4FBF8; }
+    thead { background:#215B63; color:#AAFFC7; }
     th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #E3F3ED; }
-    tr:hover { background:#E9FFF4; }
+    tr:hover { background:#E8FFF1; }
   </style>
 </head>
 <body>

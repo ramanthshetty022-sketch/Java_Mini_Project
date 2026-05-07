@@ -7,21 +7,25 @@
   <title>Report Result</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#F4FBF8; font-family:'Segoe UI',sans-serif; }
-    .navbar { background:#2C6E49; color:#F4FBF8; padding:14px 24px; font-weight:700; }
-    .navbar a { color:#CDEFE2; text-decoration:none; margin-right:10px; font-weight:500; }
+    body { background:#AAFFC7; font-family:'Segoe UI',sans-serif; color:#124170; }
+    .navbar { background:#124170; color:#AAFFC7; padding:14px 24px; font-weight:700; }
+    .navbar a { color:#AAFFC7; text-decoration:none; margin-right:10px; font-weight:500; }
     .wrap { max-width:1100px; margin:30px auto; padding:0 16px; }
-    .card { background:#fff; padding:24px; border-radius:12px; border-top:6px solid #2C6E49; box-shadow:0 6px 16px rgba(0,0,0,0.08); }
+    .card { background:#fff; padding:24px; border-radius:12px; border-top:6px solid #215B63; box-shadow:0 6px 16px rgba(0,0,0,0.08); }
     table { width:100%; border-collapse:collapse; font-size:0.9rem; }
-    thead { background:#2C6E49; color:#F4FBF8; }
+    thead { background:#215B63; color:#AAFFC7; }
     th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #E3F3ED; }
-    .alert { padding:10px 14px; border-radius:7px; margin:12px 0; font-weight:600; }
-    .alert-info { background:#CDEFE2; color:#2C6E49; border-left:4px solid #2C6E49; }
+    .actions { margin-bottom:14px; }
+    .btn { display:inline-block; margin-right:8px; background:#215B63; color:#AAFFC7; padding:7px 14px; border-radius:7px; text-decoration:none; font-weight:600; }
   </style>
 </head>
 <body>
 <div class="navbar"><a href="index.jsp">← Home</a> Hostel Management System</div>
 <div class="wrap">
+  <div class="actions">
+    <a class="btn" href="report_form.jsp">← Back to Reports</a>
+    <a class="btn" href="index.jsp">Home</a>
+  </div>
   <div class="card">
     <h2>Report Result</h2>
     <p><%= request.getAttribute("reportTitle") %></p>
@@ -29,7 +33,7 @@
       List<Student> students = (List<Student>) request.getAttribute("students");
       if (students == null || students.isEmpty()) {
     %>
-      <div class="alert alert-info">No records found.</div>
+      <p>No records found.</p>
     <% } else { %>
     <table>
       <thead>
