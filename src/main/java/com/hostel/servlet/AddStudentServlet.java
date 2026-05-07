@@ -2,79 +2,42 @@ package com.hostel.servlet;
 
 import com.hostel.dao.HostelDAO;
 import com.hostel.model.Student;
-
-import javax.servlet.*;
+import javax.servlet.ServletException;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.sql.Date;
 
 public class AddStudentServlet extends HttpServlet {
 
-    // GET — load page with next auto increment ID
-    protected void doGet(HttpServletRequest req, HttpServletResponse res)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            int nextID = new HostelDAO().getNextAutoIncrementID();
-            req.setAttribute("nextID", nextID);
-        } catch (Exception e) {
-            req.setAttribute("nextID", 1);
-        }
-        req.setAttribute("message", null);
-        req.getRequestDispatcher("studentadd.jsp").forward(req, res);
+        HostelDAO dao = new HostelDAO();
+        request.setAttribute("nextID", dao.getNextAutoIncrement());
+        request.getRequestDispatcher("studentadd.jsp").forward(request, response);
     }
 
-    // POST — save student then REDIRECT to GET (prevents double submit)
-    protected void doPost(HttpServletRequest req, HttpServletResponse res)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String msg;
-        boolean success = false;
+        HostelDAO dao = new HostelDAO();
         try {
-            String name    = req.getParameter("studentName").trim();
-            String room    = req.getParameter("roomNumber").trim();
-            String dateStr = req.getParameter("admissionDate");
-            String paidStr = req.getParameter("feesPaid").trim();
-            String pendStr = req.getParameter("pendingFees").trim();
+            String name = request.getParameter("studentName");
+            String room = request.getParameter("roomNumber");
+            Date date = Date.valueOf(request.getParameter("admissionDate"));
+            double paid = Double.parseDouble(request.getParameter("feesPaid"));
+            double pending = Double.parseDouble(request.getParameter("pendingFees"));
 
-            // Server side validation
-            if (name.isEmpty() || room.isEmpty() || dateStr.isEmpty()
-                    || paidStr.isEmpty() || pendStr.isEmpty()) {
-                msg = "Error: All fields are required.";
-            } else {
-                double paid    = Double.parseDouble(paidStr);
-                double pending = Double.parseDouble(pendStr);
+            if (paid < 0 || pending < 0) throw new IllegalArgumentException("Fees cannot be negative.");
 
-                if (paid < 0 || pending < 0) {
-                    msg = "Error: Fee amounts cannot be negative!";
-                } else {
-                    Date admDate = Date.valueOf(dateStr);
-                    Student s = new Student(0, name, room, admDate, paid, pending);
-                    boolean ok = new HostelDAO().addStudent(s);
-                    if (ok) {
-                        success = true;
-                        msg = "Student added successfully!";
-                    } else {
-                        msg = "Failed to add student. Please try again.";
-                    }
-                }
-            }
+            Student s = new Student(0, name, room, date, paid, pending);
+            boolean ok = dao.addStudent(s);
+
+            request.setAttribute("message", ok ? "Student added successfully!" : "Error: Could not add student.");
+            request.setAttribute("msgType", ok ? "success" : "error");
         } catch (Exception e) {
-            msg = "Error: " + e.getMessage();
+            request.setAttribute("message", "Invalid input: " + e.getMessage());
+            request.setAttribute("msgType", "error");
         }
-
-        // POST-REDIRECT-GET: redirect after success to prevent double submit on refresh
-        if (success) {
-            HttpSession session = req.getSession();
-            session.setAttribute("flashMessage", msg);
-            res.sendRedirect("AddStudentServlet");
-        } else {
-            // On error: stay on form and show error
-            try {
-                req.setAttribute("nextID", new HostelDAO().getNextAutoIncrementID());
-            } catch (Exception e) {
-                req.setAttribute("nextID", 1);
-            }
-            req.setAttribute("message", msg);
-            req.getRequestDispatcher("studentadd.jsp").forward(req, res);
-        }
+        request.setAttribute("nextID", dao.getNextAutoIncrement());
+        request.getRequestDispatcher("studentadd.jsp").forward(request, response);
     }
 }

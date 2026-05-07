@@ -2,77 +2,54 @@ package com.hostel.servlet;
 
 import com.hostel.dao.HostelDAO;
 import com.hostel.model.Student;
-
-import javax.servlet.*;
+import javax.servlet.ServletException;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.sql.Date;
 
 public class UpdateStudentServlet extends HttpServlet {
 
-    protected void doGet(HttpServletRequest req, HttpServletResponse res)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        Student s  = null;
-        String msg = null;
-
-        // Check for flash message from session
-        HttpSession session = req.getSession(false);
-        if (session != null) {
-            msg = (String) session.getAttribute("flashMessage");
-            if (msg != null) session.removeAttribute("flashMessage");
-        }
-
-        String idParam = req.getParameter("studentID");
-        if (idParam != null && !idParam.trim().isEmpty()) {
+        String idStr = request.getParameter("studentID");
+        if (idStr != null && !idStr.isEmpty()) {
             try {
-                s = new HostelDAO().getStudentById(Integer.parseInt(idParam.trim()));
-                if (s == null) msg = "No student found with ID: " + idParam;
-            } catch (Exception e) {
-                msg = "Error: " + e.getMessage();
+                Student s = new HostelDAO().getStudentById(Integer.parseInt(idStr));
+                if (s != null) {
+                    request.setAttribute("student", s);
+                } else {
+                    request.setAttribute("message", "Student ID not found.");
+                    request.setAttribute("msgType", "error");
+                }
+            } catch (NumberFormatException e) {
+                request.setAttribute("message", "Invalid Student ID.");
+                request.setAttribute("msgType", "error");
             }
         }
-
-        req.setAttribute("student", s);
-        req.setAttribute("message", msg);
-        req.getRequestDispatcher("studentupdate.jsp").forward(req, res);
+        request.getRequestDispatcher("studentupdate.jsp").forward(request, response);
     }
 
-    protected void doPost(HttpServletRequest req, HttpServletResponse res)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String msg;
-        boolean success = false;
         try {
-            int id         = Integer.parseInt(req.getParameter("studentID").trim());
-            String name    = req.getParameter("studentName").trim();
-            String room    = req.getParameter("roomNumber").trim();
-            Date admDate   = Date.valueOf(req.getParameter("admissionDate"));
-            double paid    = Double.parseDouble(req.getParameter("feesPaid").trim());
-            double pending = Double.parseDouble(req.getParameter("pendingFees").trim());
+            int id = Integer.parseInt(request.getParameter("studentID"));
+            String name = request.getParameter("studentName");
+            String room = request.getParameter("roomNumber");
+            Date date = Date.valueOf(request.getParameter("admissionDate"));
+            double paid = Double.parseDouble(request.getParameter("feesPaid"));
+            double pending = Double.parseDouble(request.getParameter("pendingFees"));
 
-            if (paid < 0 || pending < 0) {
-                msg = "Error: Fee amounts cannot be negative!";
-            } else {
-                Student s  = new Student(id, name, room, admDate, paid, pending);
-                boolean ok = new HostelDAO().updateStudent(s);
-                if (ok) {
-                    success = true;
-                    msg = "Student updated successfully!";
-                } else {
-                    msg = "Update failed — ID not found.";
-                }
-            }
+            if (paid < 0 || pending < 0) throw new IllegalArgumentException("Fees cannot be negative.");
+
+            boolean ok = new HostelDAO().updateStudent(
+                    new Student(id, name, room, date, paid, pending));
+
+            request.setAttribute("message", ok ? "Student updated successfully!" : "Error updating student.");
+            request.setAttribute("msgType", ok ? "success" : "error");
         } catch (Exception e) {
-            msg = "Error: " + e.getMessage();
+            request.setAttribute("message", "Invalid input: " + e.getMessage());
+            request.setAttribute("msgType", "error");
         }
-
-        if (success) {
-            // PRG pattern — redirect to GET
-            HttpSession session = req.getSession();
-            session.setAttribute("flashMessage", msg);
-            res.sendRedirect("StudentUpdate");
-        } else {
-            req.setAttribute("message", msg);
-            req.getRequestDispatcher("studentupdate.jsp").forward(req, res);
-        }
+        request.getRequestDispatcher("studentupdate.jsp").forward(request, response);
     }
 }

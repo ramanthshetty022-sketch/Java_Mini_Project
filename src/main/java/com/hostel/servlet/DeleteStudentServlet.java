@@ -1,38 +1,23 @@
 package com.hostel.servlet;
 
 import com.hostel.dao.HostelDAO;
-
-import javax.servlet.*;
+import javax.servlet.ServletException;
 import javax.servlet.http.*;
 import java.io.IOException;
 
 public class DeleteStudentServlet extends HttpServlet {
 
-    protected void doPost(HttpServletRequest req, HttpServletResponse res)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String msg;
-        boolean success = false;
         try {
-            int id     = Integer.parseInt(req.getParameter("studentID").trim());
+            int id = Integer.parseInt(request.getParameter("studentID"));
             boolean ok = new HostelDAO().deleteStudent(id);
-            if (ok) {
-                success = true;
-                msg = "Student with ID " + id + " deleted successfully!";
-            } else {
-                msg = "No student found with ID: " + id;
-            }
+            request.setAttribute("message", ok ? "Student deleted successfully!" : "Student ID not found.");
+            request.setAttribute("msgType", ok ? "success" : "error");
         } catch (Exception e) {
-            msg = "Error: " + e.getMessage();
+            request.setAttribute("message", "Invalid Student ID.");
+            request.setAttribute("msgType", "error");
         }
-
-        if (success) {
-            // PRG pattern
-            HttpSession session = req.getSession();
-            session.setAttribute("flashMessage", msg);
-            res.sendRedirect("studentdelete.jsp");
-        } else {
-            req.setAttribute("message", msg);
-            req.getRequestDispatcher("studentdelete.jsp").forward(req, res);
-        }
+        request.getRequestDispatcher("studentdelete.jsp").forward(request, response);
     }
 }

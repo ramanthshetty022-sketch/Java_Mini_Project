@@ -22,22 +22,21 @@ public class Student {
         this.pendingFees = pendingFees;
     }
 
-    // Getters and Setters
     public int getStudentID() { return studentID; }
-    public void setStudentID(int studentID) { this.studentID = studentID; }
+    public void setStudentID(int v) { this.studentID = v; }
 
     public String getStudentName() { return studentName; }
-    public void setStudentName(String studentName) { this.studentName = studentName; }
+    public void setStudentName(String v) { this.studentName = v; }
 
     public String getRoomNumber() { return roomNumber; }
-    public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }
+    public void setRoomNumber(String v) { this.roomNumber = v; }
 
     public Date getAdmissionDate() { return admissionDate; }
-    public void setAdmissionDate(Date admissionDate) { this.admissionDate = admissionDate; }
+    public void setAdmissionDate(Date v) { this.admissionDate = v; }
 
     public double getFeesPaid() { return feesPaid; }
-    public void setFeesPaid(double feesPaid) { this.feesPaid = feesPaid; }
+    public void setFeesPaid(double v) { this.feesPaid = v; }
 
     public double getPendingFees() { return pendingFees; }
-    public void setPendingFees(double pendingFees) { this.pendingFees = pendingFees; }
+    public void setPendingFees(double v) { this.pendingFees = v; }
 }

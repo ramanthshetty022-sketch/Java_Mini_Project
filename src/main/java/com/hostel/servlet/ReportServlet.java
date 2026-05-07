@@ -2,9 +2,7 @@ package com.hostel.servlet;
 
 import com.hostel.dao.HostelDAO;
 import com.hostel.model.Student;
-
-import javax.servlet.*;
-
+import javax.servlet.ServletException;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.sql.Date;
@@ -12,38 +10,34 @@ import java.util.List;
 
 public class ReportServlet extends HttpServlet {
 
-    protected void doPost(HttpServletRequest req, HttpServletResponse res)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String type = req.getParameter("reportType");
-        List<Student> results = null;
-        String msg = null;
+        String type = request.getParameter("reportType");
+        HostelDAO dao = new HostelDAO();
+        List<Student> students = null;
+        String title = "";
 
         try {
-            HostelDAO dao = new HostelDAO();
-            switch (type) {
-                case "pending":
-                    results = dao.getStudentsWithPendingFees();
-                    break;
-                case "room":
-                    String room = req.getParameter("roomNumber").trim();
-                    results = dao.getStudentsByRoom(room);
-                    break;
-                case "daterange":
-                    Date from = Date.valueOf(req.getParameter("fromDate"));
-                    Date to   = Date.valueOf(req.getParameter("toDate"));
-                    results   = dao.getStudentsByDateRange(from, to);
-                    break;
-                default:
-                    msg = "Unknown report type.";
+            if ("pendingFees".equals(type)) {
+                students = dao.getStudentsWithPendingFees();
+                title = "Students with Pending Fees";
+            } else if ("room".equals(type)) {
+                String room = request.getParameter("roomNumber");
+                students = dao.getStudentsByRoom(room);
+                title = "Students in Room: " + room;
+            } else if ("dateRange".equals(type)) {
+                Date from = Date.valueOf(request.getParameter("fromDate"));
+                Date to = Date.valueOf(request.getParameter("toDate"));
+                students = dao.getStudentsByDateRange(from, to);
+                title = "Students Admitted from " + from + " to " + to;
             }
-            if (results != null && results.isEmpty()) msg = "No records found.";
         } catch (Exception e) {
-            msg = "Error: " + e.getMessage();
+            request.setAttribute("message", "Invalid input: " + e.getMessage());
+            request.setAttribute("msgType", "error");
         }
 
-        req.setAttribute("results", results);
-        req.setAttribute("message", msg);
-        req.setAttribute("reportType", type);
-        req.getRequestDispatcher("report_result.jsp").forward(req, res);
+        request.setAttribute("students", students);
+        request.setAttribute("reportTitle", title);
+        request.getRequestDispatcher("report_result.jsp").forward(request, response);
     }
 }
